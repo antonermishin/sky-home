@@ -111,6 +111,36 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font); overfl
 .tile.ghost .card { background: rgba(255,255,255,.04); box-shadow: 0 0 0 2px rgba(255,255,255,.12) inset; }
 .shelf-foot { display: flex; justify-content: space-between; padding: 22px 120px 0; font-size: 20px; color: var(--fg-3); }
 
+/* ---- screensavers tab ---- */
+.sv { position: absolute; left: 120px; right: 120px; bottom: 96px; display: grid; grid-template-columns: repeat(3, 1fr) 260px; gap: 30px; align-items: end;
+  opacity: 0; transform: translateY(30px); transition: opacity .35s, transform .35s; pointer-events: none; }
+.ui.savers .shelf { opacity: 0; transform: translateY(30px); pointer-events: none; }
+.ui.savers .sv { opacity: 1; transform: none; pointer-events: auto; }
+.svc { position: relative; border: 0; padding: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; outline: none;
+  display: flex; flex-direction: column; gap: 16px; transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .3s; opacity: .7; transform-origin: bottom center; }
+.svc canvas { width: 100%; aspect-ratio: 16 / 9; border-radius: 30px; display: block; background: #05060c; box-shadow: 0 0 0 1px rgba(255,255,255,.12) inset; transition: box-shadow .3s; }
+.svc .n { font: 500 28px var(--font); display: flex; align-items: center; gap: 12px; }
+.svc .n i { font-style: normal; font-size: 16px; letter-spacing: .08em; text-transform: uppercase; color: var(--sun); opacity: 0; transition: opacity .3s; }
+.svc.sel .n i { opacity: 1; }
+.svc .d { font-size: 20px; color: var(--fg-2); line-height: 1.4; margin-top: -8px; min-height: 56px; }
+.svc.kf, .svc:hover { opacity: 1; transform: scale(1.04); }
+.svc.kf canvas { box-shadow: 0 0 0 4px #fff, 0 30px 80px rgba(0,0,0,.5); }
+.svt { align-self: stretch; border-radius: 30px; border: 0; background: rgba(255,255,255,.05); box-shadow: 0 0 0 1px var(--line) inset; color: var(--fg);
+  display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 30px; font: inherit; text-align: left; cursor: pointer; outline: none; margin-bottom: 72px; }
+.svt .k { font-size: 18px; letter-spacing: .1em; text-transform: uppercase; color: var(--fg-3); }
+.svt .v { font: 300 52px var(--font); font-variant-numeric: tabular-nums; }
+.svt .h { font-size: 18px; color: var(--fg-3); }
+.svt.kf { box-shadow: 0 0 0 4px #fff; }
+
+/* ---- screensaver overlay ---- */
+.saver { position: absolute; inset: 0; background: #000; opacity: 0; transition: opacity 1.2s ease; pointer-events: none; z-index: 20; }
+.saver.on { opacity: 1; pointer-events: auto; cursor: none; }
+.saver canvas { position: absolute; inset: 0; width: 1920px; height: 1080px; display: block; }
+.sclock { position: absolute; left: 140px; top: 760px; transition: opacity 1.5s ease; }
+.sclock .st { font-size: 136px; font-weight: 200; letter-spacing: -.04em; line-height: .9; font-variant-numeric: tabular-nums; }
+.sclock .sd { font-size: 28px; color: rgba(255,255,255,.72); margin-top: 14px; font-variant-numeric: tabular-nums; }
+.sclock.fade { opacity: 0; }
+
 /* ---- dashboards placeholder ---- */
 .dash { position: absolute; left: 120px; right: 120px; bottom: 110px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px;
   opacity: 0; transform: translateY(30px); transition: opacity .35s, transform .35s; pointer-events: none; }
@@ -169,7 +199,8 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font); overfl
 
         <nav class="tabs" id="tabs">
           <button class="tab on" type="button" id="tab-0">Главная</button>
-          <button class="tab" type="button" id="tab-1">Дашборды</button>
+          <button class="tab" type="button" id="tab-1">Заставки</button>
+          <button class="tab" type="button" id="tab-2">Дашборды</button>
         </nav>
 
         <section class="wx" aria-label="Погода">
@@ -195,6 +226,13 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font); overfl
           <div class="shelf-foot"><span id="appCount"></span><span>◀ ▶ выбрать · OK открыть · ▲ вкладки</span></div>
         </section>
 
+        <section class="sv" aria-label="Заставки" id="svRow">
+          <button type="button" class="svc" id="sv-0"><canvas width="480" height="270"></canvas><span class="n">Аврора <i>выбрана</i></span><span class="d">Северное сияние в цветах твоей подсветки</span></button>
+          <button type="button" class="svc" id="sv-1"><canvas width="480" height="270"></canvas><span class="n">Волга <i>выбрана</i></span><span class="d">Жигули за рекой, солнце и луна по реальному времени</span></button>
+          <button type="button" class="svc" id="sv-2"><canvas width="480" height="270"></canvas><span class="n">Космос <i>выбрана</i></span><span class="d">Медленный дрейф звёзд и туманностей</span></button>
+          <button type="button" class="svt" id="sv-3"><span class="k">Включать через</span><span class="v" id="svTime">5 мин</span><span class="h">OK — изменить</span></button>
+        </section>
+
         <section class="dash" aria-label="Дашборды">
           <div class="d-card"><span class="soon">Следующий шаг</span><div><h3>Серверы</h3><p>Нагрузка, диски и аптайм твоих машин</p></div></div>
           <div class="d-card"><span class="soon">Следующий шаг</span><div><h3>Трафик проектов</h3><p>Визиты и позиции по сайтам из Метрики</p></div></div>
@@ -208,6 +246,9 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font); overfl
           <p class="phint">▲ ▼ выбрать · OK добавить или убрать · «Назад» закрыть</p>
           <div class="plist" id="plist"></div>
         </div>
+      </div>
+      <div class="saver" id="saver"><canvas id="svCanvas" width="960" height="540"></canvas>
+        <div class="sclock" id="sclock"><div class="st" id="sTime">--:--</div><div class="sd" id="sDate"></div></div>
       </div>
       <div class="toast" id="toast"></div>
       <div class="demo" id="demo" hidden></div>
@@ -331,10 +372,10 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font); overfl
     done.style.strokeDasharray = len; done.style.strokeDashoffset = len * (1 - cf);
     if (f >= 0 && f <= 1) {
       var x = 260 - 220 * Math.cos(Math.PI * f), y = 118 - 100 * Math.sin(Math.PI * f);
-      dot.setAttribute("cx", x); dot.setAttribute("cy", y); halo.setAttribute("cx", x); halo.setAttribute("cy", y);
+      dot.style.display = halo.style.display = ""; dot.setAttribute("cx", x); dot.setAttribute("cy", y); halo.setAttribute("cx", x); halo.setAttribute("cy", y);
       var left = s.ss - m; mid.textContent = "до заката " + (left >= 60 ? Math.floor(left / 60) + " ч " : "") + (left % 60) + " мин";
     } else {
-      dot.setAttribute("cx", -50); halo.setAttribute("cx", -50);
+      dot.style.display = "none"; halo.style.display = "none";
       var until = m < s.sr ? s.sr - m : 1440 - m + s.sr;
       mid.textContent = "до рассвета " + Math.floor(until / 60) + " ч " + (until % 60) + " мин";
     }
@@ -399,8 +440,10 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font); overfl
   }
   var focusRGB = [214,58,78], flash = 0, last = 0, reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   function lerpTo(a, b, k) { for (var i = 0; i < 3; i++) a[i] += (b[i] - a[i]) * k; }
+  var SAVER_ON = false;
   function frameDraw(ts) {
     requestAnimationFrame(frameDraw);
+    if (SAVER_ON) return;
     if (ts - last < 33) return; last = ts; // ~30 fps keeps the TV chip cool
     lerpTo(cur.top, target.top, .02); lerpTo(cur.hor, target.hor, .02); cur.grey += (target.grey - cur.grey) * .02; lerpTo(cur.tint, focusRGB, .06);
     var g = [22,24,30], top = mix(cur.top, g, cur.grey * .7), hor = mix(cur.hor, [40,42,50], cur.grey * .7);
@@ -482,15 +525,17 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font); overfl
     paintTabs();
   }
   function paintTabs() {
-    for (var i = 0; i < 2; i++) { var el = $("tab-" + i); el.classList.toggle("on", i === tabIdx); el.classList.toggle("kf", zone === "tabs" && i === tabIdx); }
+    for (var i = 0; i < 3; i++) { var el = $("tab-" + i); el.classList.toggle("on", i === tabIdx); el.classList.toggle("kf", zone === "tabs" && i === tabIdx); }
   }
   function setTab(i) {
-    tabIdx = i; ui.classList.toggle("dashboards", i === 1);
-    if (i === 1) focusRGB = [128,96,255]; else setFocus(focus);
+    tabIdx = Math.max(0, Math.min(2, i));
+    ui.classList.toggle("savers", tabIdx === 1); ui.classList.toggle("dashboards", tabIdx === 2);
+    if (tabIdx === 1) { focusRGB = [150,90,255]; paintSv(); } else if (tabIdx === 2) focusRGB = [128,96,255]; else setFocus(focus);
     paintTabs();
   }
   $("tab-0").addEventListener("click", function () { setTab(0); });
   $("tab-1").addEventListener("click", function () { setTab(1); });
+  $("tab-2").addEventListener("click", function () { setTab(2); });
 
   var tt;
   function say(msg, ms) { toast.textContent = msg; toast.classList.add("show"); clearTimeout(tt); tt = setTimeout(function () { toast.classList.remove("show"); }, ms || 1800); }
@@ -561,18 +606,192 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font); overfl
   }
   $("pclose").addEventListener("click", closePicker);
 
+
+  /* ================= заставки ================= */
+  function rnd(seed) { return function () { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }; }
+  var SAVERS = [
+    { // Аврора
+      init: function (W, H) {
+        var r = rnd(7), st = { stars: [], oc: document.createElement("canvas") };
+        st.oc.width = Math.round(W / 4); st.oc.height = Math.round(H / 4); st.ox = st.oc.getContext("2d");
+        for (var i = 0; i < 160; i++) st.stars.push([r() * W, r() * H * .8, r() * 1.2 + .3, r() * 6.28]);
+        return st;
+      },
+      draw: function (c, W, H, t, st) {
+        var g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#020309"); g.addColorStop(.7, "#060a1c"); g.addColorStop(1, "#0b0818");
+        c.globalCompositeOperation = "source-over"; c.fillStyle = g; c.fillRect(0, 0, W, H);
+        c.fillStyle = "#fff";
+        for (var i = 0; i < st.stars.length; i++) { var s = st.stars[i], z = s[2] * W / 960; c.globalAlpha = .25 + .35 * (.5 + .5 * Math.sin(t * .8 + s[3])); c.fillRect(s[0], s[1], z, z); }
+        c.globalAlpha = 1;
+        // ribbons are drawn small and scaled up: the browser's smoothing does the blur for free
+        var o = st.ox, w = st.oc.width, h = st.oc.height;
+        o.globalCompositeOperation = "source-over"; o.clearRect(0, 0, w, h); o.globalCompositeOperation = "lighter";
+        var R = [ [70,255,190, .62, .0, .64, 1], [140,90,255, .5, 1.7, .55, .9], [255,90,200, .26, 3.1, .47, .8], [80,200,255, .3, 4.4, .72, .7] ];
+        for (var k = 0; k < R.length; k++) {
+          var col = R[k], rgb = col[0] + "," + col[1] + "," + col[2], ph = col[4];
+          for (var x = 0; x < w; x++) {
+            var u = x / w;
+            var y = h * col[5] + Math.sin(u * 5.2 + t * .11 + ph) * h * .09 + Math.sin(u * 13 - t * .19 + ph * 2) * h * .028 + Math.sin(u * 2.1 + t * .05) * h * .05;
+            var th = h * (.16 + .1 * Math.sin(u * 6 + t * .13 + ph)) * col[6];
+            var a = col[3] * (.55 + .45 * Math.sin(u * 9 + t * .35 + ph)) * (.85 + .15 * Math.sin(x * 1.7 + ph + t));
+            if (a <= .02) continue;
+            var lg = o.createLinearGradient(0, y - th * 2, 0, y + th * .2);
+            lg.addColorStop(0, "rgba(" + rgb + ",0)"); lg.addColorStop(.7, "rgba(" + rgb + "," + (a * .45).toFixed(3) + ")");
+            lg.addColorStop(.93, "rgba(" + rgb + "," + a.toFixed(3) + ")"); lg.addColorStop(1, "rgba(" + rgb + ",0)");
+            o.fillStyle = lg; o.fillRect(x, y - th * 2, 1, th * 2.2);
+          }
+        }
+        c.globalCompositeOperation = "lighter"; c.imageSmoothingEnabled = true; c.drawImage(st.oc, 0, 0, W, H);
+        c.globalCompositeOperation = "source-over";
+        var gg = c.createLinearGradient(0, H * .8, 0, H); gg.addColorStop(0, "rgba(2,3,9,0)"); gg.addColorStop(1, "rgba(2,3,9,.9)");
+        c.fillStyle = gg; c.fillRect(0, H * .8, W, H * .2);
+      }
+    },
+    { // Волга
+      init: function (W, H) {
+        var r = rnd(21), st = { lights: [], rip: [], stars: [] };
+        for (var i = 0; i < 34; i++) { var x = .35 + r() * .62; st.lights.push([x, r(), r() * 6.28]); }
+        for (var j = 0; j < 46; j++) st.rip.push([r(), r(), .03 + r() * .09, r() * 6.28]);
+        for (var k = 0; k < 120; k++) st.stars.push([r() * W, r() * H * .5, r() * 6.28]);
+        return st;
+      },
+      draw: function (c, W, H, t, st) {
+        var hz = H * .6, m = clockMin(), sT = sunTimes(), night = m < sT.sr || m >= sT.ss;
+        var pal = skyFor(m), top = pal[0], hor = pal[1];
+        function rgb(a, k) { return "rgb(" + Math.round(a[0] * k) + "," + Math.round(a[1] * k) + "," + Math.round(a[2] * k) + ")"; }
+        var g = c.createLinearGradient(0, 0, 0, hz); g.addColorStop(0, rgb(top, 1)); g.addColorStop(1, rgb(hor, 1.25));
+        c.fillStyle = g; c.fillRect(0, 0, W, hz + 1);
+        if (night) { c.fillStyle = "#fff"; for (var s = 0; s < st.stars.length; s++) { var q = st.stars[s]; c.globalAlpha = .2 + .4 * (.5 + .5 * Math.sin(t * .7 + q[2])); c.fillRect(q[0], q[1], W / 960, W / 960); } c.globalAlpha = 1; }
+        // sun or moon
+        var f = (m - sT.sr) / (sT.ss - sT.sr), lx, ly, lr = H * .028, lcol, glowCol;
+        if (!night) { lx = W * (.12 + .76 * f); ly = hz - Math.sin(Math.PI * Math.max(0, Math.min(1, f))) * H * .42 + H * .02; lcol = f < .15 || f > .85 ? "255,170,110" : "255,226,170"; glowCol = lcol; }
+        else { lx = W * .74; ly = H * .2; lcol = "232,236,255"; glowCol = "170,180,255"; lr = H * .022; }
+        var sg = c.createRadialGradient(lx, ly, 0, lx, ly, H * .45); sg.addColorStop(0, "rgba(" + glowCol + ",.28)"); sg.addColorStop(1, "rgba(" + glowCol + ",0)");
+        c.fillStyle = sg; c.fillRect(0, 0, W, hz);
+        if (ly < hz) { c.fillStyle = "rgb(" + lcol + ")"; c.beginPath(); c.arc(lx, ly, lr, 0, 6.28); c.fill(); }
+        // Zhiguli hills on the far bank
+        c.beginPath(); c.moveTo(0, hz);
+        for (var x = 0; x <= W; x += W / 160) {
+          var u = x / W, hgt = (.012 + .05 * Math.pow(u, 1.3)) * H * (1 + .35 * Math.sin(u * 9 + 1) + .2 * Math.sin(u * 23) + .08 * Math.sin(u * 61));
+          c.lineTo(x, hz - hgt);
+        }
+        c.lineTo(W, hz); c.closePath(); c.fillStyle = rgb(top, .55); c.fill();
+        // lights of Zhigulevsk at night
+        if (night) for (var l = 0; l < st.lights.length; l++) { var L = st.lights[l]; c.fillStyle = "rgba(255,196,130," + (.45 + .4 * Math.sin(t * 1.3 + L[2])).toFixed(2) + ")"; c.fillRect(L[0] * W, hz - 1 - L[1] * H * .012, W / 700, W / 700); }
+        // water
+        var wg = c.createLinearGradient(0, hz, 0, H); wg.addColorStop(0, rgb(hor, .7)); wg.addColorStop(1, rgb(top, .35));
+        c.fillStyle = wg; c.fillRect(0, hz, W, H - hz);
+        // ripples
+        for (var i = 0; i < st.rip.length; i++) { var p = st.rip[i], yy = hz + 3 + Math.pow(p[1], 1.6) * (H - hz), ww = p[2] * W * (.4 + p[1]), xx = ((p[0] + t * .004 * (1 + p[1])) % 1.2 - .1) * W;
+          c.fillStyle = "rgba(255,255,255," + (.025 + .03 * Math.sin(t * .8 + p[3])).toFixed(3) + ")"; c.fillRect(xx, yy, ww, Math.max(1, H / 540)); }
+        // reflection path under sun / moon
+        if (ly < hz + lr) {
+          for (var k = 0; k < 34; k++) { var v = k / 34, ry = hz + 2 + Math.pow(v, 1.4) * (H - hz) * .95, rw = (W * .012 + v * W * .06) * (.5 + .5 * Math.abs(Math.sin(t * 1.7 + k * 1.9)));
+            c.fillStyle = "rgba(" + lcol + "," + ((1 - v) * .5 + .08).toFixed(2) + ")"; c.fillRect(lx - rw / 2 + Math.sin(t * 1.1 + k) * W * .004, ry, rw, Math.max(1, H / 400)); }
+        }
+      }
+    },
+    { // Космос
+      init: function (W, H) {
+        var r = rnd(99), st = { s: [], shoot: null, next: 8 };
+        for (var i = 0; i < 260; i++) st.s.push([r(), r(), (i % 3) + 1, r() * 6.28]);
+        return st;
+      },
+      draw: function (c, W, H, t, st) {
+        c.globalCompositeOperation = "source-over"; c.fillStyle = "#02020a"; c.fillRect(0, 0, W, H);
+        c.globalCompositeOperation = "lighter";
+        var neb = [[150,70,255, .38, .32, .02], [40,120,255, .70, .58, .015], [255,60,170, .55, .28, .011]];
+        for (var n = 0; n < neb.length; n++) { var N = neb[n], nx = W * (N[3] + .05 * Math.sin(t * N[5] + n)), ny = H * (N[4] + .06 * Math.cos(t * N[5] * 1.3 + n)), rr = W * .38;
+          var ng = c.createRadialGradient(nx, ny, 0, nx, ny, rr); ng.addColorStop(0, "rgba(" + N[0] + "," + N[1] + "," + N[2] + ",.20)"); ng.addColorStop(.5, "rgba(" + N[0] + "," + N[1] + "," + N[2] + ",.06)"); ng.addColorStop(1, "rgba(0,0,0,0)");
+          c.fillStyle = ng; c.fillRect(0, 0, W, H); }
+        c.fillStyle = "#fff";
+        for (var i = 0; i < st.s.length; i++) { var s = st.s[i], x = ((s[0] - t * .0022 * s[2]) % 1 + 1) % 1 * W, y = s[1] * H, sz = s[2] * .6 * W / 960;
+          c.globalAlpha = .3 + .5 * (.5 + .5 * Math.sin(t * (.5 + s[2] * .3) + s[3])); c.fillRect(x, y, sz, sz); }
+        c.globalAlpha = 1;
+        if (t > st.next && !st.shoot) st.shoot = { x: W * (.2 + Math.random() * .6), y: H * Math.random() * .4, life: 0 };
+        if (st.shoot) { var sh = st.shoot; sh.life += .02; var px = sh.x + sh.life * W * .35, py = sh.y + sh.life * H * .18;
+          var lg = c.createLinearGradient(px - W * .08, py - H * .04, px, py); lg.addColorStop(0, "rgba(255,255,255,0)"); lg.addColorStop(1, "rgba(255,255,255," + (.7 * (1 - sh.life)).toFixed(2) + ")");
+          c.strokeStyle = lg; c.lineWidth = Math.max(1, W / 700); c.beginPath(); c.moveTo(px - W * .08, py - H * .04); c.lineTo(px, py); c.stroke();
+          if (sh.life >= 1) { st.shoot = null; st.next = t + 14 + Math.random() * 18; } }
+        c.globalCompositeOperation = "source-over";
+      }
+    }
+  ];
+  var SV = { pick: 0, mins: 5 }, SV_STEPS = [1, 3, 5, 10, 15, 30, 0];
+  try { var sv0 = JSON.parse(localStorage.getItem("saver")); if (sv0) SV = sv0; } catch (e) {}
+  function saveSv() { try { localStorage.setItem("saver", JSON.stringify(SV)); } catch (e) {} }
+  function svLabel() { return SV.mins ? SV.mins + " мин" : "Никогда"; }
+  var svIdx = SV.pick, saverEl = $("saver"), svCv = $("svCanvas"), svCx = svCv.getContext("2d"), svState = null, svT0 = 0, svLast = 0, svWhich = 0;
+  // thumbnails: one still frame of each saver
+  for (var ti = 0; ti < 3; ti++) { (function (i) {
+    var cvs = $("sv-" + i).querySelector("canvas"), cc = cvs.getContext("2d");
+    function thumb() { SAVERS[i].draw(cc, 480, 270, 40, SAVERS[i].init(480, 270)); }
+    thumb(); setInterval(function () { if (tabIdx === 1) thumb(); }, 60000);
+    $("sv-" + i).addEventListener("click", function () { svIdx = i; pickSaver(i); });
+    $("sv-" + i).addEventListener("mouseenter", function () { svIdx = i; zone = "savers"; paintSv(); });
+  })(ti); }
+  $("sv-3").addEventListener("click", function () { svIdx = 3; cycleSvTime(); });
+  function paintSv() {
+    for (var i = 0; i < 4; i++) { var el = $("sv-" + i); el.classList.toggle("kf", zone === "savers" && i === svIdx); if (i < 3) el.classList.toggle("sel", i === SV.pick); }
+    $("svTime").textContent = svLabel();
+  }
+  function pickSaver(i) { SV.pick = i; saveSv(); paintSv(); startSaver(i); }
+  function cycleSvTime() { var k = SV_STEPS.indexOf(SV.mins); SV.mins = SV_STEPS[(k + 1) % SV_STEPS.length]; saveSv(); paintSv(); say(SV.mins ? "Заставка через " + svLabel() + " без нажатий" : "Заставка выключена"); }
+
+  var sClock = $("sclock"), sMove = 0;
+  function saverClock() {
+    var d = new Date(), w = fW.format(d);
+    $("sTime").textContent = fT.format(d);
+    var extra = WX ? " · " + t(WX.current.temperature_2m) + " " + classify(curCode())[1].toLowerCase() : "";
+    $("sDate").textContent = w.charAt(0).toUpperCase() + w.slice(1) + ", " + fD.format(d) + extra;
+  }
+  function moveClock() { // drift to a new spot every few minutes so nothing sits still on the panel
+    sClock.classList.add("fade");
+    setTimeout(function () {
+      var spots = [[140, 760], [140, 120], [1180, 760], [1180, 120], [640, 700]], p = spots[Math.floor(Math.random() * spots.length)];
+      sClock.style.left = p[0] + Math.round(Math.random() * 60) + "px"; sClock.style.top = p[1] + Math.round(Math.random() * 40) + "px";
+      saverClock(); sClock.classList.remove("fade");
+    }, 1600);
+  }
+  function svLoop(ts) {
+    if (!SAVER_ON) return;
+    requestAnimationFrame(svLoop);
+    if (ts - svLast < 33) return; svLast = ts;
+    SAVERS[svWhich].draw(svCx, svCv.width, svCv.height, (ts - svT0) / 1000 + 20, svState);
+    if (ts - sMove > 180000) { sMove = ts; moveClock(); }
+  }
+  var svClockTimer;
+  function startSaver(i) {
+    if (SAVER_ON) return;
+    svWhich = i == null ? SV.pick : i;
+    var lo = svWhich === 0; svCv.width = lo ? 480 : 960; svCv.height = lo ? 270 : 540; // aurora is soft anyway, half the pixels
+    svState = SAVERS[svWhich].init(svCv.width, svCv.height);
+    SAVER_ON = true; saverClock(); clearInterval(svClockTimer); svClockTimer = setInterval(saverClock, 15000);
+    saverEl.classList.add("on"); toast.classList.remove("show");
+    requestAnimationFrame(function (ts) { svT0 = ts; sMove = ts; svLast = 0; svLoop(ts); });
+  }
+  function stopSaver() { SAVER_ON = false; clearInterval(svClockTimer); saverEl.classList.remove("on"); lastInput = Date.now(); }
+  saverEl.addEventListener("click", stopSaver);
+  var lastInput = Date.now();
+  ["mousemove", "mousedown", "wheel"].forEach(function (ev) { document.addEventListener(ev, function () { lastInput = Date.now(); }, true); });
+  setInterval(function () {
+    if (!SAVER_ON && SV.mins && zone !== "picker" && !document.hidden && Date.now() - lastInput > SV.mins * 60000) startSaver();
+  }, 5000);
+
   // демо погоды: W или цветные кнопки пульта
   var MODES = [null, { code: 0, min: 780, n: "Ясный день" }, { code: 0, min: 1380, n: "Звёздная ночь" }, { code: 2, min: 1050, n: "Закат" },
                { code: 63, n: "Дождь" }, { code: 73, n: "Снег" }, { code: 45, min: 480, n: "Туманное утро" }, { code: 95, n: "Гроза" }];
   var mi = 0;
   function cycleWeather() { mi = (mi + 1) % MODES.length; OVERRIDE = MODES[mi]; render(); tick(); say(OVERRIDE ? "Демо: " + OVERRIDE.n : "Реальная погода"); }
-  function showDemo() { demo.textContent = "Пример погоды · клавиша W переключает небо: день, ночь, закат, дождь, снег, туман, гроза"; }
+  function showDemo() { demo.textContent = "Пример погоды · W — сменить небо · вкладка «Заставки» — посмотреть заставки"; }
 
   if (window.tizen && tizen.tvinputdevice) {
     ["ColorF0Red", "ColorF1Green"].forEach(function (k) { try { tizen.tvinputdevice.registerKey(k); } catch (e) {} });
   }
   document.addEventListener("keydown", function (e) {
     var k = e.keyCode;
+    lastInput = Date.now();
+    if (SAVER_ON) { stopSaver(); e.preventDefault(); return; } // first press only wakes the screen
     if (zone === "picker") {
       var n = plist.children.length;
       if (k === 38) pIdx = Math.max(0, pIdx - 1); else if (k === 40) pIdx = Math.min(n - 1, pIdx + 1);
@@ -582,9 +801,15 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font); overfl
     if (k === 87 || k === 403 || k === 404) { cycleWeather(); return; } // W, красная, зелёная
     if (k === 10009) { e.preventDefault(); return; } // «Назад» на главном экране ничего не закрывает
     if (zone === "tabs") {
-      if (k === 37) setTab(0); else if (k === 39) setTab(1);
+      if (k === 37) setTab(tabIdx - 1); else if (k === 39) setTab(tabIdx + 1);
       else if ((k === 40 || k === 13) && tabIdx === 0) { zone = "apps"; setFocus(focus); }
+      else if ((k === 40 || k === 13) && tabIdx === 1) { zone = "savers"; paintSv(); }
       paintTabs(); e.preventDefault(); return;
+    }
+    if (zone === "savers") {
+      if (k === 37) svIdx = Math.max(0, svIdx - 1); else if (k === 39) svIdx = Math.min(3, svIdx + 1);
+      else if (k === 38) { zone = "tabs"; } else if (k === 13) { if (svIdx < 3) pickSaver(svIdx); else cycleSvTime(); } else return;
+      paintSv(); paintTabs(); e.preventDefault(); return;
     }
     if (k === 37) setFocus(focus - 1); else if (k === 39) setFocus(focus + 1);
     else if (k === 38) { zone = "tabs"; setFocus(focus); } else if (k === 13) launch(APPS[focus]); else return;
