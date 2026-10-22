@@ -112,7 +112,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font); overfl
 .shelf-foot { display: flex; justify-content: space-between; padding: 22px 120px 0; font-size: 20px; color: var(--fg-3); }
 
 /* ---- screensavers tab ---- */
-.sv { position: absolute; left: 120px; right: 120px; bottom: 96px; display: grid; grid-template-columns: repeat(3, 1fr) 260px; gap: 30px; align-items: end;
+.sv { position: absolute; left: 120px; right: 120px; bottom: 96px; display: grid; grid-template-columns: repeat(4, 1fr) 230px; gap: 30px; align-items: end;
   opacity: 0; transform: translateY(30px); transition: opacity .35s, transform .35s; pointer-events: none; }
 .ui.savers .shelf { opacity: 0; transform: translateY(30px); pointer-events: none; }
 .ui.savers .sv { opacity: 1; transform: none; pointer-events: auto; }
@@ -122,7 +122,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font); overfl
 .svc .n { font: 500 28px var(--font); display: flex; align-items: center; gap: 12px; }
 .svc .n i { font-style: normal; font-size: 16px; letter-spacing: .08em; text-transform: uppercase; color: var(--sun); opacity: 0; transition: opacity .3s; }
 .svc.sel .n i { opacity: 1; }
-.svc .d { font-size: 20px; color: var(--fg-2); line-height: 1.4; margin-top: -8px; min-height: 56px; }
+.svc .d { font-size: 19px; color: var(--fg-2); line-height: 1.4; margin-top: -8px; min-height: 56px; }
 .svc.kf, .svc:hover { opacity: 1; transform: scale(1.04); }
 .svc.kf canvas { box-shadow: 0 0 0 4px #fff, 0 30px 80px rgba(0,0,0,.5); }
 .svt { align-self: stretch; border-radius: 30px; border: 0; background: rgba(255,255,255,.05); box-shadow: 0 0 0 1px var(--line) inset; color: var(--fg);
@@ -136,6 +136,16 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font); overfl
 .saver { position: absolute; inset: 0; background: #000; opacity: 0; transition: opacity 1.2s ease; pointer-events: none; z-index: 20; }
 .saver.on { opacity: 1; pointer-events: auto; cursor: none; }
 .saver canvas { position: absolute; inset: 0; width: 1920px; height: 1080px; display: block; }
+.saver video { position: absolute; inset: 0; width: 1920px; height: 1080px; object-fit: cover; opacity: 0; transition: opacity 2.5s ease; background: #000; }
+.saver video.show { opacity: 1; }
+.saver .shade { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 1s;
+  background: linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,0) 22%, rgba(0,0,0,0) 62%, rgba(0,0,0,.55)); }
+.saver.aero .shade { opacity: 1; }
+.saver.aero canvas { display: none; }
+.scap { position: absolute; right: 120px; bottom: 96px; text-align: right; opacity: 0; transition: opacity 1.5s ease; }
+.saver.aero .scap.show { opacity: 1; }
+.scap .p { font: 400 30px var(--font); color: rgba(255,255,255,.9); }
+.scap .a { font-size: 18px; color: rgba(255,255,255,.55); margin-top: 6px; }
 .sclock { position: absolute; left: 140px; top: 760px; transition: opacity 1.5s ease; }
 .sclock .st { font-size: 136px; font-weight: 200; letter-spacing: -.04em; line-height: .9; font-variant-numeric: tabular-nums; }
 .sclock .sd { font-size: 28px; color: rgba(255,255,255,.72); margin-top: 14px; font-variant-numeric: tabular-nums; }
@@ -157,7 +167,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font); overfl
 .ic .sun { stroke: var(--sun); }
 .ic .dim { stroke: var(--fg-2); }
 
-.toast { position: absolute; left: 50%; top: 150px; transform: translate(-50%, -10px); opacity: 0;
+.toast { z-index: 30; position: absolute; left: 50%; top: 150px; transform: translate(-50%, -10px); opacity: 0;
   background: rgba(20,20,26,.85); border-radius: 999px; box-shadow: 0 0 0 1px var(--line) inset;
   padding: 16px 32px; font-size: 22px; transition: opacity .25s, transform .25s; pointer-events: none; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
@@ -230,7 +240,8 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font); overfl
           <button type="button" class="svc" id="sv-0"><canvas width="480" height="270"></canvas><span class="n">Аврора <i>выбрана</i></span><span class="d">Северное сияние в цветах твоей подсветки</span></button>
           <button type="button" class="svc" id="sv-1"><canvas width="480" height="270"></canvas><span class="n">Волга <i>выбрана</i></span><span class="d">Жигули за рекой, солнце и луна по реальному времени</span></button>
           <button type="button" class="svc" id="sv-2"><canvas width="480" height="270"></canvas><span class="n">Космос <i>выбрана</i></span><span class="d">Медленный дрейф звёзд и туманностей</span></button>
-          <button type="button" class="svt" id="sv-3"><span class="k">Включать через</span><span class="v" id="svTime">5 мин</span><span class="h">OK — изменить</span></button>
+          <button type="button" class="svc" id="sv-3"><canvas width="480" height="270"></canvas><span class="n">Аэро <i>выбрана</i></span><span class="d">Съёмки с высоты: горы, океаны, города, Земля</span></button>
+          <button type="button" class="svt" id="sv-4"><span class="k">Включать через</span><span class="v" id="svTime">5 мин</span><span class="h">OK — изменить</span></button>
         </section>
 
         <section class="dash" aria-label="Дашборды">
@@ -248,6 +259,9 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font); overfl
         </div>
       </div>
       <div class="saver" id="saver"><canvas id="svCanvas" width="960" height="540"></canvas>
+        <video id="vA" muted playsinline preload="auto"></video><video id="vB" muted playsinline preload="auto"></video>
+        <div class="shade"></div>
+        <div class="scap" id="scap"><div class="p" id="scapP"></div><div class="a" id="scapA"></div></div>
         <div class="sclock" id="sclock"><div class="st" id="sTime">--:--</div><div class="sd" id="sDate"></div></div>
       </div>
       <div class="toast" id="toast"></div>
@@ -259,7 +273,8 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font); overfl
 <script>
 (function () {
   /* ================= настройки ================= */
-  var CONFIG = { name: "Антон", city: "Тольятти", lat: 53.5303, lon: 49.3461, tz: "Europe/Samara", refreshMin: 15 };
+  var CONFIG = { name: "Антон", city: "Тольятти", lat: 53.5303, lon: 49.3461, tz: "Europe/Samara", refreshMin: 15,
+    pixabayKey: "58178320-cb2d0161bf86f694c1bac0df1" }; // ключ публичный (репозиторий открыт); при злоупотреблении — Rotate на pixabay.com
 
   // На мониторе плитки сами находят установленные приложения по названию (match);
   // ненайденные скрываются, остальные добавляются через плитку «Добавить».
@@ -717,26 +732,125 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font); overfl
       }
     }
   ];
-  var SV = { pick: 0, mins: 5 }, SV_STEPS = [1, 3, 5, 10, 15, 30, 0];
+  var SV = { pick: 3, mins: 5 }, SV_STEPS = [1, 3, 5, 10, 15, 30, 0], NSV = 4; // 0-2 canvas, 3 = Аэро
   try { var sv0 = JSON.parse(localStorage.getItem("saver")); if (sv0) SV = sv0; } catch (e) {}
   function saveSv() { try { localStorage.setItem("saver", JSON.stringify(SV)); } catch (e) {} }
   function svLabel() { return SV.mins ? SV.mins + " мин" : "Никогда"; }
   var svIdx = SV.pick, saverEl = $("saver"), svCv = $("svCanvas"), svCx = svCv.getContext("2d"), svState = null, svT0 = 0, svLast = 0, svWhich = 0;
-  // thumbnails: one still frame of each saver
-  for (var ti = 0; ti < 3; ti++) { (function (i) {
-    var cvs = $("sv-" + i).querySelector("canvas"), cc = cvs.getContext("2d");
-    function thumb() { SAVERS[i].draw(cc, 480, 270, 40, SAVERS[i].init(480, 270)); }
-    thumb(); setInterval(function () { if (tabIdx === 1) thumb(); }, 60000);
+  // thumbnails: one still frame of each generative saver
+  for (var ti = 0; ti < NSV; ti++) { (function (i) {
+    if (i < 3) {
+      var cc = $("sv-" + i).querySelector("canvas").getContext("2d");
+      var thumb = function () { SAVERS[i].draw(cc, 480, 270, 40, SAVERS[i].init(480, 270)); };
+      thumb(); setInterval(function () { if (tabIdx === 1) thumb(); }, 60000);
+    }
     $("sv-" + i).addEventListener("click", function () { svIdx = i; pickSaver(i); });
     $("sv-" + i).addEventListener("mouseenter", function () { svIdx = i; zone = "savers"; paintSv(); });
   })(ti); }
-  $("sv-3").addEventListener("click", function () { svIdx = 3; cycleSvTime(); });
+  $("sv-4").addEventListener("click", function () { svIdx = 4; cycleSvTime(); });
   function paintSv() {
-    for (var i = 0; i < 4; i++) { var el = $("sv-" + i); el.classList.toggle("kf", zone === "savers" && i === svIdx); if (i < 3) el.classList.toggle("sel", i === SV.pick); }
+    for (var i = 0; i <= NSV; i++) { var el = $("sv-" + i); el.classList.toggle("kf", zone === "savers" && i === svIdx); if (i < NSV) el.classList.toggle("sel", i === SV.pick); }
     $("svTime").textContent = svLabel();
   }
   function pickSaver(i) { SV.pick = i; saveSv(); paintSv(); startSaver(i); }
   function cycleSvTime() { var k = SV_STEPS.indexOf(SV.mins); SV.mins = SV_STEPS[(k + 1) % SV_STEPS.length]; saveSv(); paintSv(); say(SV.mins ? "Заставка через " + svLabel() + " без нажатий" : "Заставка выключена"); }
+
+  /* ---------- Аэро: видео с Pixabay ---------- */
+  var AERO_Q = {
+    day:   ["aerial mountains", "aerial ocean waves", "aerial forest", "aerial coastline", "aerial lake", "aerial desert", "aerial city", "aerial clouds", "earth from space", "aerial river", "aerial snow mountains", "aerial island"],
+    night: ["city night aerial", "aerial city lights", "sunset aerial", "aerial sunset ocean", "earth at night space", "night skyline drone", "aerial sunset mountains"]
+  };
+  var RU = { mountains: "Горы", mountain: "Горы", ocean: "Океан", sea: "Море", waves: "Волны", beach: "Пляж", coast: "Побережье", coastline: "Побережье", forest: "Лес", trees: "Лес",
+    lake: "Озеро", river: "Река", desert: "Пустыня", city: "Город", cityscape: "Город", skyline: "Город", night: "Ночь", clouds: "Облака", sunset: "Закат", sunrise: "Рассвет",
+    snow: "Снег", winter: "Зима", island: "Остров", earth: "Земля", space: "Космос", planet: "Земля", waterfall: "Водопад", canyon: "Каньон", glacier: "Ледник", iceland: "Исландия",
+    norway: "Норвегия", alps: "Альпы", dubai: "Дубай", "new york": "Нью-Йорк", tokyo: "Токио", paris: "Париж", london: "Лондон", hawaii: "Гавайи", bridge: "Мост", road: "Дорога",
+    autumn: "Осень", fog: "Туман", volcano: "Вулкан", fjord: "Фьорд", valley: "Долина", field: "Поля", fields: "Поля", rocks: "Скалы", cliff: "Скалы", lights: "Огни", harbor: "Гавань" };
+  var GENERIC = /^(aerial|drone|landscape|nature|4k|video|background|footage|view|flight|flying|sky|aerial view|drone footage|scenery|scenic|travel|outdoors|natural|beautiful)$/;
+  function captionFor(tags) {
+    var out = [], seen = {};
+    tags.split(",").forEach(function (raw) {
+      var tg = raw.trim().toLowerCase(); if (!tg || GENERIC.test(tg) || out.length >= 2) return;
+      var ru = RU[tg] || (tg.charAt(0).toUpperCase() + tg.slice(1));
+      if (!seen[ru]) { seen[ru] = 1; out.push(ru); }
+    });
+    return out.join(" · ") || "С высоты";
+  }
+  var POOL = { day: [], night: [] }, aeroTried = false;
+  function cacheGet(k) { try { var x = JSON.parse(localStorage.getItem(k)); if (x && Date.now() - x.at < 864e5) return x.hits; } catch (e) {} return null; }
+  function cachePut(k, hits) { try { localStorage.setItem(k, JSON.stringify({ at: Date.now(), hits: hits })); } catch (e) {} }
+  function slim(h) { // keep only what we need, so 24h cache fits in storage
+    var v = h.videos && (h.videos.medium && h.videos.medium.url ? h.videos.medium : h.videos.small);
+    return v && v.url ? { u: v.url, th: v.thumbnail || "", tags: h.tags || "", user: h.user || "", d: h.duration || 0 } : null;
+  }
+  function loadAero(done) {
+    if (!CONFIG.pixabayKey) { done && done(); return; }
+    var jobs = [];
+    ["day", "night"].forEach(function (ph) {
+      AERO_Q[ph].forEach(function (q) {
+        var key = "px:" + q, hit = cacheGet(key);
+        if (hit) { POOL[ph] = POOL[ph].concat(hit); return; }
+        jobs.push(fetch("https://pixabay.com/api/videos/?key=" + CONFIG.pixabayKey + "&q=" + encodeURIComponent(q) +
+            "&video_type=film&min_width=1920&safesearch=true&order=popular&per_page=20")
+          .then(function (r) { if (!r.ok) throw r.status; return r.json(); })
+          .then(function (j) { var hits = (j.hits || []).map(slim).filter(function (x) { return x && x.d >= 8; }); cachePut(key, hits); POOL[ph] = POOL[ph].concat(hits); })
+          .catch(function () {}));
+      });
+    });
+    Promise.all(jobs).then(function () {
+      ["day", "night"].forEach(function (ph) { var seen = {}; POOL[ph] = POOL[ph].filter(function (x) { if (seen[x.u]) return false; seen[x.u] = 1; return true; }); });
+      aeroTried = true; aeroThumb(); done && done();
+    });
+  }
+  function aeroPhase() { var s = sunTimes(), m = clockMin(); return m > s.sr - 30 && m < s.ss - 20 ? "day" : "night"; }
+  function aeroThumb() {
+    var cc = $("sv-3").querySelector("canvas").getContext("2d"), list = POOL[aeroPhase()].length ? POOL[aeroPhase()] : POOL.day;
+    cc.fillStyle = "#0a0c16"; cc.fillRect(0, 0, 480, 270);
+    if (!list.length) { cc.fillStyle = "rgba(255,255,255,.5)"; cc.font = "400 20px Onest, sans-serif"; cc.textAlign = "center"; cc.fillText(!isTV ? "Видео покажутся на мониторе" : aeroTried ? "Нет связи с Pixabay" : "Загружаю видео…", 240, 142); return; }
+    var img = new Image(); img.onload = function () { cc.drawImage(img, 0, 0, 480, 270); }; img.src = list[Math.floor(Math.random() * list.length)].th;
+  }
+  aeroThumb();
+
+  var vids = [$("vA"), $("vB")], vCur = 0, aeroTimer = null, recent = [];
+  function nextClip() {
+    var list = POOL[aeroPhase()]; if (!list.length) list = POOL.day.concat(POOL.night);
+    var pick, tries = 0;
+    do { pick = list[Math.floor(Math.random() * list.length)]; tries++; } while (recent.indexOf(pick.u) >= 0 && tries < 12);
+    recent.push(pick.u); if (recent.length > 12) recent.shift();
+    return pick;
+  }
+  function playClip() {
+    if (!SAVER_ON || svWhich !== 3) return;
+    var clip = nextClip(), nv = vids[1 - vCur], ov = vids[vCur], cap = $("scap");
+    nv.src = clip.u; nv.load();
+    var started = false;
+    function go() {
+      if (started) return; started = true;
+      nv.play().catch(function () {});
+      nv.classList.add("show"); ov.classList.remove("show");
+      cap.classList.remove("show");
+      setTimeout(function () { $("scapP").textContent = captionFor(clip.tags); $("scapA").textContent = "Видео: " + clip.user + " · Pixabay"; cap.classList.add("show"); }, 1200);
+      setTimeout(function () { try { ov.pause(); ov.removeAttribute("src"); ov.load(); } catch (e) {} }, 2800);
+      vCur = 1 - vCur;
+      clearTimeout(aeroTimer);
+      var len = Math.min(Math.max(clip.d, 12), 45) * 1000; // short clips play once, long ones are cut at 45 s
+      aeroTimer = setTimeout(playClip, len - 1500);
+    }
+    nv.oncanplay = go;
+    nv.onerror = function () { clearTimeout(aeroTimer); aeroTimer = setTimeout(playClip, 500); };
+    nv.loop = clip.d < 12;
+    clearTimeout(aeroTimer); aeroTimer = setTimeout(function () { if (!started) playClip(); }, 15000); // slow network: try another clip
+  }
+  function startAero() {
+    saverEl.classList.add("aero");
+    if (POOL.day.length + POOL.night.length) { playClip(); return true; }
+    return false;
+  }
+  function stopAero() {
+    clearTimeout(aeroTimer); saverEl.classList.remove("aero"); $("scap").classList.remove("show");
+    vids.forEach(function (v) { v.classList.remove("show"); try { v.pause(); v.removeAttribute("src"); v.load(); } catch (e) {} });
+  }
+  setTimeout(function () { loadAero(); }, 3000);
+  setInterval(function () { POOL = { day: [], night: [] }; loadAero(); }, 864e5 / 4);
 
   var sClock = $("sclock"), sMove = 0;
   function saverClock() {
@@ -748,7 +862,8 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font); overfl
   function moveClock() { // drift to a new spot every few minutes so nothing sits still on the panel
     sClock.classList.add("fade");
     setTimeout(function () {
-      var spots = [[140, 760], [140, 120], [1180, 760], [1180, 120], [640, 700]], p = spots[Math.floor(Math.random() * spots.length)];
+      var spots = svWhich === 3 ? [[140, 760], [140, 120], [1180, 120]] : [[140, 760], [140, 120], [1180, 760], [1180, 120], [640, 700]];
+      var p = spots[Math.floor(Math.random() * spots.length)];
       sClock.style.left = p[0] + Math.round(Math.random() * 60) + "px"; sClock.style.top = p[1] + Math.round(Math.random() * 40) + "px";
       saverClock(); sClock.classList.remove("fade");
     }, 1600);
@@ -756,21 +871,28 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font); overfl
   function svLoop(ts) {
     if (!SAVER_ON) return;
     requestAnimationFrame(svLoop);
+    if (ts - sMove > 180000) { sMove = ts; moveClock(); }
+    if (svWhich === 3) return;
     if (ts - svLast < 33) return; svLast = ts;
     SAVERS[svWhich].draw(svCx, svCv.width, svCv.height, (ts - svT0) / 1000 + 20, svState);
-    if (ts - sMove > 180000) { sMove = ts; moveClock(); }
   }
   var svClockTimer;
   function startSaver(i) {
     if (SAVER_ON) return;
     svWhich = i == null ? SV.pick : i;
-    var lo = svWhich === 0; svCv.width = lo ? 480 : 960; svCv.height = lo ? 270 : 540; // aurora is soft anyway, half the pixels
-    svState = SAVERS[svWhich].init(svCv.width, svCv.height);
-    SAVER_ON = true; saverClock(); clearInterval(svClockTimer); svClockTimer = setInterval(saverClock, 15000);
-    saverEl.classList.add("on"); toast.classList.remove("show");
+    SAVER_ON = true;
+    if (svWhich === 3 && !startAero()) { // no clips yet (offline, preview) — fall back to the aurora
+      saverEl.classList.remove("aero"); svWhich = 0; say(isTV ? "Видео ещё загружаются — пока Аврора" : "Видео работают только на мониторе — показываю Аврору", 2600);
+    }
+    if (svWhich !== 3) {
+      var lo = svWhich === 0; svCv.width = lo ? 480 : 960; svCv.height = lo ? 270 : 540; // aurora is soft anyway, half the pixels
+      svState = SAVERS[svWhich].init(svCv.width, svCv.height);
+    }
+    saverClock(); clearInterval(svClockTimer); svClockTimer = setInterval(saverClock, 15000);
+    saverEl.classList.add("on");
     requestAnimationFrame(function (ts) { svT0 = ts; sMove = ts; svLast = 0; svLoop(ts); });
   }
-  function stopSaver() { SAVER_ON = false; clearInterval(svClockTimer); saverEl.classList.remove("on"); lastInput = Date.now(); }
+  function stopSaver() { SAVER_ON = false; clearInterval(svClockTimer); stopAero(); saverEl.classList.remove("on"); lastInput = Date.now(); }
   saverEl.addEventListener("click", stopSaver);
   var lastInput = Date.now();
   ["mousemove", "mousedown", "wheel"].forEach(function (ev) { document.addEventListener(ev, function () { lastInput = Date.now(); }, true); });
@@ -807,8 +929,8 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font); overfl
       paintTabs(); e.preventDefault(); return;
     }
     if (zone === "savers") {
-      if (k === 37) svIdx = Math.max(0, svIdx - 1); else if (k === 39) svIdx = Math.min(3, svIdx + 1);
-      else if (k === 38) { zone = "tabs"; } else if (k === 13) { if (svIdx < 3) pickSaver(svIdx); else cycleSvTime(); } else return;
+      if (k === 37) svIdx = Math.max(0, svIdx - 1); else if (k === 39) svIdx = Math.min(NSV, svIdx + 1);
+      else if (k === 38) { zone = "tabs"; } else if (k === 13) { if (svIdx < NSV) pickSaver(svIdx); else cycleSvTime(); } else return;
       paintSv(); paintTabs(); e.preventDefault(); return;
     }
     if (k === 37) setFocus(focus - 1); else if (k === 39) setFocus(focus + 1);
