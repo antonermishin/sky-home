@@ -1,0 +1,9 @@
+{
+  "name": "sky-home",
+  "version": "1.0.0",
+  "description": "Живое небо — главный экран для Samsung M5: часы, погода, полка приложений",
+  "packageType": "app",
+  "appName": "Небо",
+  "appPath": "app/index.html",
+  "keys": ["ColorF0Red", "ColorF1Green"]
+}

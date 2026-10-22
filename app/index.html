@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920, initial-scale=1">
+<title>Главный экран M5</title>
+<style>
+@font-face{font-family:"Onest";font-style:normal;font-weight:200;font-display:block;src:url(fonts/onest-cyrillic-200-normal.woff2) format("woff2");unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;}
+@font-face{font-family:"Onest";font-style:normal;font-weight:200;font-display:block;src:url(fonts/onest-latin-200-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+@font-face{font-family:"Onest";font-style:normal;font-weight:300;font-display:block;src:url(fonts/onest-cyrillic-300-normal.woff2) format("woff2");unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;}
+@font-face{font-family:"Onest";font-style:normal;font-weight:300;font-display:block;src:url(fonts/onest-latin-300-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+@font-face{font-family:"Onest";font-style:normal;font-weight:400;font-display:block;src:url(fonts/onest-cyrillic-400-normal.woff2) format("woff2");unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;}
+@font-face{font-family:"Onest";font-style:normal;font-weight:400;font-display:block;src:url(fonts/onest-latin-400-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+@font-face{font-family:"Onest";font-style:normal;font-weight:500;font-display:block;src:url(fonts/onest-cyrillic-500-normal.woff2) format("woff2");unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;}
+@font-face{font-family:"Onest";font-style:normal;font-weight:500;font-display:block;src:url(fonts/onest-latin-500-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+html,body{margin:0}
+/* Concept «Живое небо»: the whole screen is a dark sky that follows the real sun and the real weather;
+   the focused app casts its colour into the room like the LED strip behind the monitor.
+   Layout: 1920×1080 stage — clock top-left, tabs top-centre, weather + sun arc top-right, app shelf along the bottom. */
+:root {
+  --bg: #05060c;
+  --fg: #f5f5f7;
+  --fg-2: rgba(245,245,247,.66);
+  --fg-3: rgba(245,245,247,.40);
+  --line: rgba(255,255,255,.10);
+  --chip: rgba(255,255,255,.07);
+  --sun: #ffcf6b;
+  --font: "Onest", -apple-system, "SF Pro Display", system-ui, "Segoe UI", Roboto, sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font); overflow: hidden; -webkit-font-smoothing: antialiased; }
+.frame {
+  position: relative; height: 100%; box-sizing: border-box;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px;
+}
+.frame.tv { padding: 0; }
+.viewport { position: relative; width: 100%; height: 100%; overflow: hidden; }
+.stage {
+  position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px;
+  transform: translate(-50%, -50%) scale(var(--s, .5));
+  background: var(--bg); overflow: hidden;
+}
+.frame:not(.tv) .stage { border-radius: 28px; box-shadow: 0 0 0 1px var(--line); }
+#sky { position: absolute; inset: 0; width: 1920px; height: 1080px; display: block; }
+.vignette { position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 40%, rgba(0,0,0,0) 55%, rgba(0,0,0,.55) 100%),
+              linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,0) 30%, rgba(0,0,0,0) 55%, rgba(0,0,0,.55)); }
+
+.ui { position: absolute; inset: 0; }
+
+/* ---- clock ---- */
+.clock { position: absolute; left: 120px; top: 92px; }
+.greet { font-size: 28px; color: var(--fg-2); font-weight: 400; }
+.time { font-size: 172px; font-weight: 200; line-height: .92; letter-spacing: -.045em; font-variant-numeric: tabular-nums; margin: 6px 0 0 -8px; }
+.date { font-size: 30px; color: var(--fg-2); margin-top: 14px; }
+.date b { color: var(--fg); font-weight: 500; }
+
+/* ---- tabs ---- */
+.tabs { position: absolute; top: 64px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px;
+  padding: 6px; border-radius: 999px; background: var(--chip); box-shadow: 0 0 0 1px var(--line) inset; }
+.tab { font: 500 22px var(--font); color: var(--fg-2); padding: 12px 30px; border-radius: 999px; border: 0; background: none; cursor: pointer; transition: background .25s, color .25s; }
+.tab.on { background: rgba(255,255,255,.14); color: var(--fg); }
+.tab.kf { box-shadow: 0 0 0 3px #fff; color: var(--fg); }
+
+/* ---- weather ---- */
+.wx { position: absolute; right: 120px; top: 92px; width: 520px; display: flex; flex-direction: column; gap: 26px; }
+.wx-now { display: flex; align-items: center; justify-content: flex-end; gap: 22px; }
+.wx-now .icon svg { width: 84px; height: 84px; display: block; }
+.wx-now .temp { font-size: 104px; font-weight: 200; line-height: 1; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+.wx-cap { text-align: right; margin-top: -14px; }
+.wx-cap .cond { font-size: 30px; }
+.wx-cap .more { font-size: 22px; color: var(--fg-2); margin-top: 6px; font-variant-numeric: tabular-nums; }
+
+.arc { position: relative; height: 150px; }
+.arc svg { width: 520px; height: 150px; overflow: visible; display: block; }
+.arc .base { fill: none; stroke: rgba(255,255,255,.16); stroke-width: 2; stroke-dasharray: 2 8; stroke-linecap: round; }
+.arc .done { fill: none; stroke: var(--sun); stroke-width: 2.5; stroke-linecap: round; opacity: .85; }
+.arc .hz { stroke: rgba(255,255,255,.14); stroke-width: 1; }
+.arc .dot { fill: var(--sun); }
+.arc .halo { fill: var(--sun); opacity: .18; }
+.arc text { fill: var(--fg-3); font: 400 19px var(--font); font-variant-numeric: tabular-nums; }
+.arc .mid { fill: var(--fg-2); font-size: 20px; }
+
+.hours { display: grid; grid-template-columns: repeat(5, 1fr); }
+.h { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.h .t { font-size: 20px; color: var(--fg-3); font-variant-numeric: tabular-nums; }
+.h svg { width: 40px; height: 40px; }
+.h .d { font-size: 24px; font-weight: 300; font-variant-numeric: tabular-nums; }
+
+/* ---- app shelf ---- */
+.shelf { position: absolute; left: 0; right: 0; bottom: 70px; transition: opacity .35s, transform .35s; }
+.rail { overflow: hidden; padding: 40px 0 10px; }
+.track { display: flex; align-items: flex-end; gap: 30px; padding: 0 120px; transition: transform .5s cubic-bezier(.2,.8,.2,1); }
+.tile { flex: 0 0 auto; width: 300px; height: 300px; border: 0; padding: 0; background: none; cursor: pointer; outline: none;
+  position: relative; transition: width .45s cubic-bezier(.2,.8,.2,1), transform .45s cubic-bezier(.2,.8,.2,1), opacity .35s; opacity: .62; transform: scale(.9); transform-origin: bottom left; }
+.tile .card { position: absolute; inset: 0; border-radius: 40px; overflow: hidden;
+  background: linear-gradient(155deg, rgba(var(--rgb), .55), rgba(var(--rgb), .16) 60%, rgba(10,10,14,.6));
+  box-shadow: 0 0 0 1px rgba(255,255,255,.12) inset; transition: box-shadow .35s; }
+.tile .card::before { content: ""; position: absolute; inset: 0;
+  background: radial-gradient(120% 80% at 15% 0%, rgba(255,255,255,.22), rgba(255,255,255,0) 50%); }
+.tile svg { position: absolute; left: 36px; top: 36px; width: 76px; height: 76px; }
+.tile .lbl { position: absolute; left: 36px; right: 36px; bottom: 32px; text-align: left; }
+.tile .name { display: block; font: 500 30px var(--font); color: #fff; letter-spacing: -.005em; }
+.tile .sub { display: block; font: 400 20px var(--font); color: rgba(255,255,255,.66); margin-top: 6px; opacity: 0; transform: translateY(8px); transition: opacity .3s .1s, transform .3s .1s; }
+.tile.focus { width: 560px; opacity: 1; transform: scale(1); }
+.tile.focus .card { box-shadow: 0 0 0 1px rgba(255,255,255,.25) inset, 0 30px 80px rgba(var(--rgb), .35), 0 0 0 4px rgba(255,255,255,.9); }
+.tile.focus .sub { opacity: 1; transform: none; }
+.tile.ghost .card { background: rgba(255,255,255,.04); box-shadow: 0 0 0 2px rgba(255,255,255,.12) inset; }
+.shelf-foot { display: flex; justify-content: space-between; padding: 22px 120px 0; font-size: 20px; color: var(--fg-3); }
+
+/* ---- dashboards placeholder ---- */
+.dash { position: absolute; left: 120px; right: 120px; bottom: 110px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px;
+  opacity: 0; transform: translateY(30px); transition: opacity .35s, transform .35s; pointer-events: none; }
+.dash .d-card { height: 300px; border-radius: 40px; background: rgba(255,255,255,.045); box-shadow: 0 0 0 1px var(--line) inset; padding: 36px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; }
+.dash .d-card h3 { margin: 0; font: 500 30px var(--font); }
+.dash .d-card p { margin: 0; font-size: 22px; color: var(--fg-2); line-height: 1.4; }
+.dash .d-card .soon { font-size: 18px; color: var(--fg-3); letter-spacing: .08em; text-transform: uppercase; }
+.ui.dashboards .shelf { opacity: 0; transform: translateY(30px); pointer-events: none; }
+.ui.dashboards .dash { opacity: 1; transform: none; }
+
+.gl { fill: none; stroke: #fff; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.gl .f { fill: #fff; stroke: none; }
+.ic { fill: none; stroke: var(--fg); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.ic .sun { stroke: var(--sun); }
+.ic .dim { stroke: var(--fg-2); }
+
+.toast { position: absolute; left: 50%; top: 150px; transform: translate(-50%, -10px); opacity: 0;
+  background: rgba(20,20,26,.85); border-radius: 999px; box-shadow: 0 0 0 1px var(--line) inset;
+  padding: 16px 32px; font-size: 22px; transition: opacity .25s, transform .25s; pointer-events: none; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.demo { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); font-size: 17px; color: var(--fg-3); }
+.tile .appicon { position: absolute; left: 36px; top: 36px; width: 84px; height: 84px; border-radius: 20px; object-fit: cover; }
+.picker { position: absolute; inset: 0; background: rgba(3,3,8,.62); display: flex; justify-content: flex-end; }
+.picker[hidden] { display: none; }
+.psheet { width: 720px; height: 100%; box-sizing: border-box; padding: 80px 64px; background: rgba(18,18,24,.96); box-shadow: -1px 0 0 var(--line); display: flex; flex-direction: column; }
+.phead { display: flex; justify-content: space-between; align-items: center; }
+.phead h3 { margin: 0; font: 500 40px var(--font); }
+.pclose { font: 500 22px var(--font); color: var(--fg); background: var(--chip); border: 0; border-radius: 999px; padding: 12px 26px; cursor: pointer; }
+.phint { font-size: 20px; color: var(--fg-3); margin: 14px 0 30px; }
+.plist { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.pitem { display: flex; align-items: center; gap: 22px; padding: 16px 22px; border-radius: 22px; border: 0; background: none; color: var(--fg); font: 400 26px var(--font); text-align: left; cursor: pointer; flex: 0 0 auto; }
+.pitem img { width: 56px; height: 56px; border-radius: 14px; object-fit: cover; }
+.pitem .pdot { width: 56px; height: 56px; border-radius: 14px; background: var(--chip); }
+.pitem .pname { flex: 1; }
+.pitem .pstate { font-size: 20px; color: var(--fg-3); }
+.pitem.on .pstate { color: var(--sun); }
+.pitem.kf, .pitem:hover { background: rgba(255,255,255,.1); }
+.pitem.kf { box-shadow: 0 0 0 3px #fff inset; }
+@media (prefers-reduced-motion: reduce) { .tile, .track, .tile .sub, .shelf, .dash { transition: none !important; } }
+</style>
+
+</head>
+<body>
+<div class="frame" id="frame">
+  <div class="viewport" id="viewport">
+    <div class="stage" id="stage">
+      <canvas id="sky" width="960" height="540"></canvas>
+      <div class="vignette"></div>
+
+      <div class="ui" id="ui">
+        <section class="clock">
+          <div class="greet" id="greet">Добрый вечер</div>
+          <div class="time" id="time">--:--</div>
+          <div class="date" id="date">—</div>
+        </section>
+
+        <nav class="tabs" id="tabs">
+          <button class="tab on" type="button" id="tab-0">Главная</button>
+          <button class="tab" type="button" id="tab-1">Дашборды</button>
+        </nav>
+
+        <section class="wx" aria-label="Погода">
+          <div class="wx-now"><div class="icon" id="wxIcon"></div><div class="temp" id="wxTemp">--°</div></div>
+          <div class="wx-cap"><div class="cond" id="wxCond">—</div><div class="more" id="wxMore">—</div></div>
+          <div class="arc">
+            <svg viewBox="0 0 520 150">
+              <line class="hz" x1="0" y1="118" x2="520" y2="118"/>
+              <path class="base" id="arcTrack" d="M40 118 A220 100 0 0 1 480 118"/>
+              <path class="done" id="arcDone" d="M40 118 A220 100 0 0 1 480 118"/>
+              <circle class="halo" id="arcHalo" r="18" cx="-50" cy="-50"/>
+              <circle class="dot" id="arcDot" r="7" cx="-50" cy="-50"/>
+              <text x="40" y="146" text-anchor="middle" id="srT">--:--</text>
+              <text x="480" y="146" text-anchor="middle" id="ssT">--:--</text>
+              <text x="260" y="100" text-anchor="middle" class="mid" id="arcMid"></text>
+            </svg>
+          </div>
+          <div class="hours" id="hours"></div>
+        </section>
+
+        <section class="shelf" aria-label="Приложения">
+          <div class="rail"><div class="track" id="track"></div></div>
+          <div class="shelf-foot"><span id="appCount"></span><span>◀ ▶ выбрать · OK открыть · ▲ вкладки</span></div>
+        </section>
+
+        <section class="dash" aria-label="Дашборды">
+          <div class="d-card"><span class="soon">Следующий шаг</span><div><h3>Серверы</h3><p>Нагрузка, диски и аптайм твоих машин</p></div></div>
+          <div class="d-card"><span class="soon">Следующий шаг</span><div><h3>Трафик проектов</h3><p>Визиты и позиции по сайтам из Метрики</p></div></div>
+          <div class="d-card"><span class="soon">Следующий шаг</span><div><h3>Заявки и продажи</h3><p>Свежие заказы и лиды за сегодня</p></div></div>
+        </section>
+      </div>
+
+      <div class="picker" id="picker" hidden>
+        <div class="psheet">
+          <div class="phead"><h3>Приложения монитора</h3><button type="button" class="pclose" id="pclose">Готово</button></div>
+          <p class="phint">▲ ▼ выбрать · OK добавить или убрать · «Назад» закрыть</p>
+          <div class="plist" id="plist"></div>
+        </div>
+      </div>
+      <div class="toast" id="toast"></div>
+      <div class="demo" id="demo" hidden></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  /* ================= настройки ================= */
+  var CONFIG = { name: "Антон", city: "Тольятти", lat: 53.5303, lon: 49.3461, tz: "Europe/Samara", refreshMin: 15 };
+
+  // На мониторе плитки сами находят установленные приложения по названию (match);
+  // ненайденные скрываются, остальные добавляются через плитку «Добавить».
+  var PRESET = [
+    { name: "YouTube",       sub: "TizenTube · без рекламы",  glyph: "play",   rgb: "214,58,78",   match: ["tizentube", "youtube"] },
+    { name: "Кинопоиск",     sub: "Фильмы и сериалы",         glyph: "film",   rgb: "232,138,44",  match: ["кинопоиск", "kinopoisk"] },
+    { name: "VK Видео",      sub: "Видео и трансляции",       glyph: "video",  rgb: "64,128,232",  match: ["vk видео", "vk video", "vk"] },
+    { name: "Яндекс Музыка", sub: "Музыка и подкасты",        glyph: "music",  rgb: "222,186,58",  match: ["музыка", "music"] },
+    { name: "Wink",          sub: "ТВ-каналы",                glyph: "tv",     rgb: "128,96,255",  match: ["wink"] },
+    { name: "Браузер",       sub: "Интернет",                 glyph: "globe",  rgb: "46,176,160",  match: ["internet", "интернет", "browser", "браузер"] },
+    { name: "Плеер",         sub: "Файлы и флешки",           glyph: "folder", rgb: "120,138,160", match: ["media", "медиа", "player", "плеер", "usb"] }
+  ];
+  var ADD_TILE = { name: "Добавить", sub: "Любое приложение монитора", glyph: "plus", rgb: "255,255,255", ghost: true };
+  var APPS = PRESET.concat([ADD_TILE]);
+  var PALETTE = ["214,58,78", "232,138,44", "64,128,232", "222,186,58", "128,96,255", "46,176,160", "200,90,170", "90,170,110"];
+  var GLYPHS = {
+    play:  '<rect x="10" y="20" width="60" height="40" rx="12"/><path class="f" d="M34 31v18l15-9z"/>',
+    film:  '<rect x="14" y="16" width="52" height="48" rx="6"/><path d="M26 16v48M54 16v48M14 30h12M14 50h12M54 30h12M54 50h12"/>',
+    video: '<rect x="10" y="22" width="44" height="36" rx="8"/><path d="M54 34l16-9v30l-16-9"/>',
+    music: '<path d="M32 56V18l30-6v38"/><circle cx="24" cy="56" r="8"/><circle cx="54" cy="50" r="8"/>',
+    tv:    '<rect x="10" y="18" width="60" height="38" rx="6"/><path d="M28 66h24M40 56v10"/>',
+    globe: '<circle cx="40" cy="40" r="26"/><path d="M14 40h52M40 14c-9 8-9 44 0 52M40 14c9 8 9 44 0 52"/>',
+    folder:'<path d="M12 24a4 4 0 0 1 4-4h14l6 6h28a4 4 0 0 1 4 4v28a4 4 0 0 1-4 4H16a4 4 0 0 1-4-4z"/>',
+    gear:  '<circle cx="40" cy="40" r="9"/><circle cx="40" cy="40" r="20"/><path d="M40 12v8M40 60v8M12 40h8M60 40h8M20.2 20.2l5.7 5.7M54.1 54.1l5.7 5.7M20.2 59.8l5.7-5.7M54.1 25.9l5.7-5.7"/>',
+    plus:  '<path d="M40 22v36M22 40h36"/>'
+  };
+
+  /* ================= масштаб ================= */
+  var frame = document.getElementById("frame"), vp = document.getElementById("viewport"), stage = document.getElementById("stage");
+  var isTV = !!window.tizen || (Math.abs(window.innerWidth / window.innerHeight - 16 / 9) < 0.01 && window.innerWidth >= 1280);
+  if (isTV) frame.classList.add("tv");
+  function fit() { stage.style.setProperty("--s", Math.min(vp.clientWidth / 1920, vp.clientHeight / 1080)); }
+  window.addEventListener("resize", fit); fit();
+  function $(id) { return document.getElementById(id); }
+
+  /* ================= время ================= */
+  var fT = new Intl.DateTimeFormat("ru-RU", { timeZone: CONFIG.tz, hour: "2-digit", minute: "2-digit", hour12: false });
+  var fW = new Intl.DateTimeFormat("ru-RU", { timeZone: CONFIG.tz, weekday: "long" });
+  var fD = new Intl.DateTimeFormat("ru-RU", { timeZone: CONFIG.tz, day: "numeric", month: "long" });
+  function nowMin() { var p = fT.format(new Date()).split(":"); return +p[0] * 60 + +p[1]; }
+  function toMin(hhmm) { var p = hhmm.split(":"); return +p[0] * 60 + +p[1]; }
+  function tick() {
+    var d = new Date(), w = fW.format(d), m = nowMin();
+    $("time").textContent = fT.format(d);
+    $("date").innerHTML = "<b>" + w.charAt(0).toUpperCase() + w.slice(1) + "</b>, " + fD.format(d);
+    var g = m < 300 ? "Доброй ночи" : m < 720 ? "Доброе утро" : m < 1080 ? "Добрый день" : m < 1380 ? "Добрый вечер" : "Доброй ночи";
+    $("greet").textContent = g + ", " + CONFIG.name;
+    drawArc();
+  }
+
+  /* ================= погода ================= */
+  var WX = null, OVERRIDE = null;
+  function classify(c) {
+    if (c === 0) return ["clear", "Ясно"]; if (c === 1) return ["partly", "Малооблачно"];
+    if (c === 2) return ["partly", "Переменная облачность"]; if (c === 3) return ["cloudy", "Пасмурно"];
+    if (c === 45 || c === 48) return ["fog", "Туман"]; if (c >= 51 && c <= 57) return ["drizzle", "Морось"];
+    if ((c >= 61 && c <= 67) || (c >= 80 && c <= 82)) return ["rain", "Дождь"];
+    if ((c >= 71 && c <= 77) || c === 85 || c === 86) return ["snow", "Снег"];
+    if (c >= 95) return ["storm", "Гроза"]; return ["cloudy", "Облачно"];
+  }
+  function icon(kind, night) {
+    var sun = night ? '<path class="dim" d="M40 14a16 16 0 1 0 14 22A13 13 0 0 1 40 14z"/>'
+      : '<circle class="sun" cx="32" cy="30" r="10"/><path class="sun" d="M32 8v5M32 47v5M10 30h5M49 30h5M16.4 14.4l3.5 3.5M44.1 42.1l3.5 3.5M16.4 45.6l3.5-3.5M44.1 17.9l3.5-3.5"/>';
+    var sunSm = night ? '<path class="dim" d="M30 10a11 11 0 1 0 10 15A9 9 0 0 1 30 10z"/>'
+      : '<circle class="sun" cx="24" cy="22" r="7"/><path class="sun" d="M24 7v3.5M9 22h3.5M13.4 11.4l2.5 2.5M34.6 11.4l-2.5 2.5"/>';
+    var cl = function (y) { return '<path d="M20 ' + (y + 12) + 'h26a9 9 0 0 0 0-18 12 12 0 0 0-23-2A10 10 0 0 0 20 ' + (y + 12) + 'z"/>'; };
+    var b = { clear: sun, partly: sunSm + cl(40), cloudy: '<path d="M20 50h26a10 10 0 0 0 0-20 14 14 0 0 0-27-2A11 11 0 0 0 20 50z"/>',
+      fog: '<path d="M12 26h40M8 34h48M14 42h36M20 50h24"/>', drizzle: cl(28) + '<path class="dim" d="M24 48v4M34 48v4M44 48v4"/>',
+      rain: cl(26) + '<path class="dim" d="M24 44l-3 9M34 44l-3 9M44 44l-3 9"/>', snow: cl(26) + '<path class="dim" d="M24 46v8M20 50h8M38 46v8M34 50h8"/>',
+      storm: cl(24) + '<path class="sun" d="M33 40l-6 9h8l-5 9"/>' }[kind];
+    return '<svg viewBox="0 0 64 64" class="ic">' + b + "</svg>";
+  }
+  function t(v) { var r = Math.round(v); return (r > 0 ? "+" : r < 0 ? "−" : "") + Math.abs(r) + "°"; }
+  function hhmm(iso) { return iso.slice(11, 16); }
+  function curCode() { return OVERRIDE ? OVERRIDE.code : (WX ? WX.current.weather_code : 3); }
+
+  function render() {
+    if (!WX) return;
+    var c = WX.current, code = curCode(), k = classify(code), night = isNight();
+    $("wxIcon").innerHTML = icon(k[0], night);
+    $("wxTemp").textContent = t(c.temperature_2m);
+    $("wxCond").textContent = k[1];
+    $("wxMore").textContent = CONFIG.city + " · " + t(WX.daily.temperature_2m_max[0]) + " / " + t(WX.daily.temperature_2m_min[0]) + " · ветер " + Math.round(c.wind_speed_10m) + " м/с";
+    $("srT").textContent = hhmm(WX.daily.sunrise[0]);
+    $("ssT").textContent = hhmm(WX.daily.sunset[0]);
+    var times = WX.hourly.time, start = 0, key = c.time.slice(0, 13), sr = toMin(hhmm(WX.daily.sunrise[0])), ss = toMin(hhmm(WX.daily.sunset[0])), html = "";
+    for (var i = 0; i < times.length; i++) if (times[i].slice(0, 13) === key) { start = i; break; }
+    for (var j = 1; j <= 5; j++) {
+      var idx = start + j * 2; if (idx >= times.length) break;
+      var hm = toMin(hhmm(times[idx]));
+      html += '<div class="h"><span class="t">' + hhmm(times[idx]).slice(0, 2) + ':00</span>' +
+        icon(classify(WX.hourly.weather_code[idx])[0], hm < sr || hm >= ss) + '<span class="d">' + t(WX.hourly.temperature_2m[idx]) + "</span></div>";
+    }
+    $("hours").innerHTML = html;
+    drawArc();
+    setSkyTarget();
+  }
+
+  function sunTimes() {
+    if (!WX) return { sr: 446, ss: 1059 };
+    return { sr: toMin(hhmm(WX.daily.sunrise[0])), ss: toMin(hhmm(WX.daily.sunset[0])) };
+  }
+  function clockMin() { return OVERRIDE && OVERRIDE.min != null ? OVERRIDE.min : nowMin(); }
+  function isNight() { var s = sunTimes(), m = clockMin(); return m < s.sr || m >= s.ss; }
+
+  function drawArc() {
+    var s = sunTimes(), m = clockMin(), f = (m - s.sr) / (s.ss - s.sr);
+    var done = $("arcDone"), len = done.getTotalLength(), dot = $("arcDot"), halo = $("arcHalo"), mid = $("arcMid");
+    var cf = Math.max(0, Math.min(1, f));
+    done.style.strokeDasharray = len; done.style.strokeDashoffset = len * (1 - cf);
+    if (f >= 0 && f <= 1) {
+      var x = 260 - 220 * Math.cos(Math.PI * f), y = 118 - 100 * Math.sin(Math.PI * f);
+      dot.setAttribute("cx", x); dot.setAttribute("cy", y); halo.setAttribute("cx", x); halo.setAttribute("cy", y);
+      var left = s.ss - m; mid.textContent = "до заката " + (left >= 60 ? Math.floor(left / 60) + " ч " : "") + (left % 60) + " мин";
+    } else {
+      dot.setAttribute("cx", -50); halo.setAttribute("cx", -50);
+      var until = m < s.sr ? s.sr - m : 1440 - m + s.sr;
+      mid.textContent = "до рассвета " + Math.floor(until / 60) + " ч " + (until % 60) + " мин";
+    }
+  }
+
+  function sample() {
+    var d = new Date(), parts = new Intl.DateTimeFormat("en-CA", { timeZone: CONFIG.tz, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", hour12: false }).formatToParts(d), o = {};
+    parts.forEach(function (p) { o[p.type] = p.value; });
+    var day = o.year + "-" + o.month + "-" + o.day, h0 = +o.hour % 24, hrs = [], tc = [], wc = [];
+    var codes = [61, 61, 3, 3, 3, 2, 2, 1, 0, 0, 0, 0, 1, 2], temps = [6, 5, 5, 4, 3, 3, 2, 2, 1, 1, 0, 0, 0, 1];
+    for (var i = 0; i < 14; i++) { var hh = (h0 + i) % 24; hrs.push(day + "T" + (hh < 10 ? "0" : "") + hh + ":00"); tc.push(temps[i]); wc.push(codes[i]); }
+    return { current: { time: hrs[0], temperature_2m: 5.6, apparent_temperature: 1.8, weather_code: 61, wind_speed_10m: 5.2, is_day: 1 },
+      hourly: { time: hrs, temperature_2m: tc, weather_code: wc },
+      daily: { temperature_2m_max: [8], temperature_2m_min: [1], sunrise: [day + "T07:26"], sunset: [day + "T17:39"] } };
+  }
+  var demo = $("demo");
+  function load() {
+    var url = "https://api.open-meteo.com/v1/forecast?latitude=" + CONFIG.lat + "&longitude=" + CONFIG.lon +
+      "&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,is_day" +
+      "&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset" +
+      "&timezone=" + encodeURIComponent(CONFIG.tz) + "&forecast_days=2&wind_speed_unit=ms";
+    fetch(url).then(function (r) { if (!r.ok) throw 0; return r.json(); })
+      .then(function (w) { WX = w; render(); try { localStorage.setItem("wx", JSON.stringify(w)); } catch (e) {} })
+      .catch(function () { var x = null; try { x = JSON.parse(localStorage.getItem("wx")); } catch (e) {}
+        if (x) WX = x; else { WX = sample(); demo.hidden = false; showDemo(); } render(); });
+  }
+
+  /* ================= небо ================= */
+  var cv = $("sky"), cx = cv.getContext("2d"), W = 960, H = 540;
+  // [top, horizon] colours for each phase; deliberately dark so text always reads
+  var PAL = { night: [[5,6,16],[16,13,38]], dawn: [[12,16,36],[70,38,58]], day: [[10,26,48],[34,58,86]], dusk: [[10,10,30],[78,34,64]] };
+  function mix(a, b, k) { return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k]; }
+  function skyFor(m) {
+    var s = sunTimes(), keys = [[s.sr - 70, "night"], [s.sr, "dawn"], [s.sr + 100, "day"], [s.ss - 100, "day"], [s.ss, "dusk"], [s.ss + 70, "night"]];
+    if (m <= keys[0][0] || m >= keys[5][0]) return PAL.night;
+    for (var i = 0; i < 5; i++) if (m >= keys[i][0] && m <= keys[i + 1][0]) {
+      var k = (m - keys[i][0]) / (keys[i + 1][0] - keys[i][0]), A = PAL[keys[i][1]], B = PAL[keys[i + 1][1]];
+      return [mix(A[0], B[0], k), mix(A[1], B[1], k)];
+    }
+    return PAL.night;
+  }
+  var target = { top: [5,6,16], hor: [16,13,38], grey: 0, kind: "clear" }, cur = { top: [5,6,16], hor: [16,13,38], grey: 0, tint: [128,96,255] };
+  function setSkyTarget() {
+    var p = skyFor(clockMin()), kind = classify(curCode())[0];
+    target.top = p[0]; target.hor = p[1]; target.kind = kind;
+    target.grey = { clear: 0, partly: .2, cloudy: .6, fog: .7, drizzle: .55, rain: .65, snow: .45, storm: .75 }[kind];
+    setParticles(kind);
+  }
+  var parts = [], stars = [], clouds = [];
+  for (var i = 0; i < 140; i++) stars.push({ x: Math.random() * W, y: Math.random() * H * .62, r: Math.random() * 1.1 + .2, p: Math.random() * 6.28 });
+  for (var c = 0; c < 6; c++) clouds.push({ x: Math.random() * W, y: 40 + Math.random() * 220, r: 120 + Math.random() * 160, v: .05 + Math.random() * .08 });
+  var pKind = "";
+  function setParticles(kind) {
+    if (kind === pKind) return; pKind = kind; parts = [];
+    var n = { rain: 160, drizzle: 70, storm: 200, snow: 140 }[kind] || 0;
+    for (var i = 0; i < n; i++) parts.push(newP(kind, true));
+  }
+  function newP(kind, init) {
+    var snow = kind === "snow";
+    return { x: Math.random() * (W + 100) - 50, y: init ? Math.random() * H : -20, v: snow ? .35 + Math.random() * .6 : 7 + Math.random() * 5,
+      l: kind === "drizzle" ? 6 : 12 + Math.random() * 10, r: snow ? .8 + Math.random() * 1.8 : 0, ph: Math.random() * 6.28, a: .12 + Math.random() * .22 };
+  }
+  var focusRGB = [214,58,78], flash = 0, last = 0, reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function lerpTo(a, b, k) { for (var i = 0; i < 3; i++) a[i] += (b[i] - a[i]) * k; }
+  function frameDraw(ts) {
+    requestAnimationFrame(frameDraw);
+    if (ts - last < 33) return; last = ts; // ~30 fps keeps the TV chip cool
+    lerpTo(cur.top, target.top, .02); lerpTo(cur.hor, target.hor, .02); cur.grey += (target.grey - cur.grey) * .02; lerpTo(cur.tint, focusRGB, .06);
+    var g = [22,24,30], top = mix(cur.top, g, cur.grey * .7), hor = mix(cur.hor, [40,42,50], cur.grey * .7);
+    var grd = cx.createLinearGradient(0, 0, 0, H);
+    grd.addColorStop(0, "rgb(" + top.map(Math.round) + ")"); grd.addColorStop(.72, "rgb(" + hor.map(Math.round) + ")"); grd.addColorStop(1, "rgb(" + mix(hor, [4,4,8], .6).map(Math.round) + ")");
+    cx.fillStyle = grd; cx.fillRect(0, 0, W, H);
+
+    var night = isNight(), kind = target.kind;
+    if (night && (kind === "clear" || kind === "partly")) {
+      for (var s = 0; s < stars.length; s++) { var st = stars[s]; st.p += .03; cx.globalAlpha = .25 + .45 * (.5 + .5 * Math.sin(st.p)); cx.fillStyle = "#fff"; cx.fillRect(st.x, st.y, st.r, st.r); }
+      cx.globalAlpha = 1;
+    }
+    // sun / moon glow following the real arc
+    var sT = sunTimes(), m = clockMin(), f = (m - sT.sr) / (sT.ss - sT.sr);
+    if (f > -0.05 && f < 1.05) {
+      var gx = W * (.12 + .76 * f), gy = H * (.62 - .42 * Math.sin(Math.PI * Math.max(0, Math.min(1, f))));
+      var sg = cx.createRadialGradient(gx, gy, 0, gx, gy, 260);
+      var warm = f < .2 || f > .8 ? "255,150,90" : "255,214,140";
+      sg.addColorStop(0, "rgba(" + warm + "," + (.22 * (1 - cur.grey * .7)) + ")"); sg.addColorStop(1, "rgba(" + warm + ",0)");
+      cx.fillStyle = sg; cx.fillRect(0, 0, W, H);
+    }
+    // clouds
+    if (kind !== "clear") {
+      var ca = kind === "partly" ? .035 : .06;
+      for (var k = 0; k < clouds.length; k++) { var cl = clouds[k]; cl.x += cl.v; if (cl.x - cl.r > W) cl.x = -cl.r;
+        var cg = cx.createRadialGradient(cl.x, cl.y, 0, cl.x, cl.y, cl.r); cg.addColorStop(0, "rgba(200,205,220," + ca + ")"); cg.addColorStop(1, "rgba(200,205,220,0)");
+        cx.fillStyle = cg; cx.fillRect(cl.x - cl.r, cl.y - cl.r, cl.r * 2, cl.r * 2); }
+    }
+    if (kind === "fog") { for (var b = 0; b < 3; b++) { var fy = H * (.45 + b * .12), ox = (ts / 90 + b * 300) % (W * 2) - W;
+      var fg = cx.createLinearGradient(0, fy - 40, 0, fy + 40); fg.addColorStop(0, "rgba(190,195,210,0)"); fg.addColorStop(.5, "rgba(190,195,210,.07)"); fg.addColorStop(1, "rgba(190,195,210,0)");
+      cx.fillStyle = fg; cx.fillRect(0, fy - 40, W, 80); } }
+    // precipitation
+    if (parts.length) {
+      cx.strokeStyle = "rgba(200,215,255,1)"; cx.lineWidth = 1; cx.fillStyle = "#fff";
+      for (var q = 0; q < parts.length; q++) { var p = parts[q];
+        if (kind === "snow") { p.ph += .02; p.y += p.v; p.x += Math.sin(p.ph) * .4; cx.globalAlpha = p.a + .2; cx.beginPath(); cx.arc(p.x, p.y, p.r, 0, 6.28); cx.fill(); }
+        else { p.y += p.v; p.x -= p.v * .18; cx.globalAlpha = p.a; cx.beginPath(); cx.moveTo(p.x, p.y); cx.lineTo(p.x + p.l * .18, p.y - p.l); cx.stroke(); }
+        if (p.y > H + 20) parts[q] = newP(kind, false);
+      }
+      cx.globalAlpha = 1;
+    }
+    if (kind === "storm") { if (Math.random() < .004) flash = 1; if (flash > 0) { cx.fillStyle = "rgba(220,225,255," + flash * .18 + ")"; cx.fillRect(0, 0, W, H); flash -= .08; } }
+    // ambilight: the focused app lights the room from below
+    var tx = W * .5, tg = cx.createRadialGradient(tx, H * 1.05, 0, tx, H * 1.05, W * .7), tc = cur.tint.map(Math.round).join(",");
+    tg.addColorStop(0, "rgba(" + tc + ",.38)"); tg.addColorStop(.5, "rgba(" + tc + ",.10)"); tg.addColorStop(1, "rgba(" + tc + ",0)");
+    cx.fillStyle = tg; cx.fillRect(0, 0, W, H);
+    if (reduce) { parts.length = 0; }
+  }
+  cv.style.width = "1920px"; cv.style.height = "1080px";
+  requestAnimationFrame(frameDraw);
+
+  /* ================= полка приложений ================= */
+  var track = $("track"), toast = $("toast"), focus = 0, offset = 0, zone = "apps", tabIdx = 0, ui = $("ui");
+  function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function buildShelf() {
+    track.innerHTML = "";
+    APPS.forEach(function (a, i) {
+      var b = document.createElement("button");
+      b.type = "button"; b.id = "app-" + i; b.className = "tile" + (a.ghost ? " ghost" : "");
+      b.style.setProperty("--rgb", a.rgb);
+      var art = a.icon ? '<img class="appicon" src="' + esc(a.icon) + '" alt="">' : '<svg viewBox="0 0 80 80" class="gl">' + GLYPHS[a.glyph || "play"] + "</svg>";
+      b.innerHTML = '<div class="card"></div>' + art + '<span class="lbl"><span class="name">' + esc(a.name) + '</span><span class="sub">' + esc(a.sub || "") + "</span></span>";
+      b.addEventListener("click", function () { zone = "apps"; setFocus(i); launch(a); });
+      b.addEventListener("mouseenter", function () { if (zone !== "picker") { zone = "apps"; setFocus(i); } });
+      track.appendChild(b);
+    });
+    var n = APPS.length - 1;
+    $("appCount").textContent = n + " " + (n % 10 === 1 && n % 100 !== 11 ? "приложение" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? "приложения" : "приложений");
+    setFocus(Math.min(focus, APPS.length - 1));
+  }
+  var GAP = 30;
+  function setFocus(i) {
+    focus = Math.max(0, Math.min(APPS.length - 1, i));
+    if (focus < offset) offset = focus;
+    if (focus > offset + 4) offset = focus - 4; // focused tile (560) + 4 small ones fill the rail
+    track.style.transform = "translateX(" + (-offset * (300 + GAP)) + "px)";
+    for (var k = 0; k < track.children.length; k++) track.children[k].classList.toggle("focus", k === focus && zone === "apps");
+    var a = APPS[focus]; focusRGB = a.ghost ? [128,96,255] : a.rgb.split(",").map(Number);
+    paintTabs();
+  }
+  function paintTabs() {
+    for (var i = 0; i < 2; i++) { var el = $("tab-" + i); el.classList.toggle("on", i === tabIdx); el.classList.toggle("kf", zone === "tabs" && i === tabIdx); }
+  }
+  function setTab(i) {
+    tabIdx = i; ui.classList.toggle("dashboards", i === 1);
+    if (i === 1) focusRGB = [128,96,255]; else setFocus(focus);
+    paintTabs();
+  }
+  $("tab-0").addEventListener("click", function () { setTab(0); });
+  $("tab-1").addEventListener("click", function () { setTab(1); });
+
+  var tt;
+  function say(msg, ms) { toast.textContent = msg; toast.classList.add("show"); clearTimeout(tt); tt = setTimeout(function () { toast.classList.remove("show"); }, ms || 1800); }
+  function launch(a) {
+    if (a.ghost) { openPicker(); return; }
+    if (window.tizen && a.appId) { try { tizen.application.launch(a.appId, null, function () { say("Не удалось открыть «" + a.name + "»"); }); } catch (e) { say("Не удалось открыть «" + a.name + "»"); } }
+    else say("Открываю «" + a.name + "»");
+  }
+
+  /* ---- приложения монитора: поиск и выбор ---- */
+  var INSTALLED = [], SAVED = null;
+  try { SAVED = JSON.parse(localStorage.getItem("shelf")); } catch (e) {}
+  function saveShelf() { try { localStorage.setItem("shelf", JSON.stringify(APPS.filter(function (a) { return !a.ghost; }))); } catch (e) {} }
+  var SKIP = /^(org\.tizen\.|com\.samsung\.tv\.store|com\.samsung\.tv\.csfs)/i;
+  function discover() {
+    if (!(window.tizen && tizen.application && tizen.application.getAppsInfo)) return;
+    tizen.application.getAppsInfo(function (list) {
+      var me = ""; try { me = tizen.application.getCurrentApplication().appInfo.id; } catch (e) {}
+      INSTALLED = list.filter(function (x) { return x.show !== false && x.id !== me && x.name; })
+        .map(function (x) { return { id: x.id, name: x.name, icon: x.iconPath || "" }; })
+        .sort(function (a, b) { return a.name.localeCompare(b.name, "ru"); });
+      if (SAVED && SAVED.length) { APPS = SAVED.concat([ADD_TILE]); buildShelf(); return; }
+      var used = {}, shelf = [];
+      PRESET.forEach(function (p) {
+        for (var i = 0; i < INSTALLED.length; i++) {
+          var x = INSTALLED[i], nm = x.name.toLowerCase();
+          if (used[x.id]) continue;
+          for (var m = 0; m < p.match.length; m++) if (nm.indexOf(p.match[m]) >= 0) {
+            used[x.id] = 1; shelf.push({ name: p.name, sub: p.sub, glyph: p.glyph, rgb: p.rgb, appId: x.id }); return;
+          }
+        }
+      });
+      APPS = shelf.concat([ADD_TILE]); buildShelf(); saveShelf();
+    }, function () { say("Не удалось получить список приложений"); });
+  }
+
+  var picker = $("picker"), plist = $("plist"), pIdx = 0;
+  function openPicker() {
+    var src = INSTALLED.length ? INSTALLED : PRESET.map(function (p) { return { id: "demo." + p.name, name: p.name }; });
+    plist.innerHTML = "";
+    src.forEach(function (x, i) {
+      var on = APPS.some(function (a) { return a.appId === x.id; });
+      var li = document.createElement("button"); li.type = "button"; li.className = "pitem" + (on ? " on" : ""); li.id = "pick-" + i;
+      li.innerHTML = (x.icon ? '<img src="' + esc(x.icon) + '" alt="">' : '<span class="pdot"></span>') + '<span class="pname">' + esc(x.name) + '</span><span class="pstate">' + (on ? "На полке" : "Добавить") + "</span>";
+      li.addEventListener("click", function () { pIdx = i; togglePick(src, i); });
+      plist.appendChild(li);
+    });
+    picker.hidden = false; zone = "picker"; pIdx = 0; paintPick(); setFocus(focus);
+    picker._src = src;
+  }
+  function closePicker() { picker.hidden = true; zone = "apps"; setFocus(focus); }
+  function paintPick() {
+    var items = plist.children;
+    for (var i = 0; i < items.length; i++) items[i].classList.toggle("kf", i === pIdx);
+    if (items[pIdx]) { var it = items[pIdx], top = it.offsetTop - plist.clientHeight / 2 + it.offsetHeight / 2; plist.scrollTop = Math.max(0, top); }
+  }
+  function togglePick(src, i) {
+    var x = src[i], at = -1;
+    for (var k = 0; k < APPS.length; k++) if (APPS[k].appId === x.id) at = k;
+    if (at >= 0) { APPS.splice(at, 1); say("Убрано с полки: " + x.name); }
+    else {
+      var n = APPS.length - 1;
+      APPS.splice(n, 0, { name: x.name, sub: "Приложение", appId: x.id, icon: x.icon || "", glyph: "play", rgb: PALETTE[n % PALETTE.length] });
+      say("Добавлено: " + x.name);
+    }
+    buildShelf(); saveShelf();
+    var el = plist.children[i]; if (el) { var on = at < 0; el.classList.toggle("on", on); el.querySelector(".pstate").textContent = on ? "На полке" : "Добавить"; }
+  }
+  $("pclose").addEventListener("click", closePicker);
+
+  // демо погоды: W или цветные кнопки пульта
+  var MODES = [null, { code: 0, min: 780, n: "Ясный день" }, { code: 0, min: 1380, n: "Звёздная ночь" }, { code: 2, min: 1050, n: "Закат" },
+               { code: 63, n: "Дождь" }, { code: 73, n: "Снег" }, { code: 45, min: 480, n: "Туманное утро" }, { code: 95, n: "Гроза" }];
+  var mi = 0;
+  function cycleWeather() { mi = (mi + 1) % MODES.length; OVERRIDE = MODES[mi]; render(); tick(); say(OVERRIDE ? "Демо: " + OVERRIDE.n : "Реальная погода"); }
+  function showDemo() { demo.textContent = "Пример погоды · клавиша W переключает небо: день, ночь, закат, дождь, снег, туман, гроза"; }
+
+  if (window.tizen && tizen.tvinputdevice) {
+    ["ColorF0Red", "ColorF1Green"].forEach(function (k) { try { tizen.tvinputdevice.registerKey(k); } catch (e) {} });
+  }
+  document.addEventListener("keydown", function (e) {
+    var k = e.keyCode;
+    if (zone === "picker") {
+      var n = plist.children.length;
+      if (k === 38) pIdx = Math.max(0, pIdx - 1); else if (k === 40) pIdx = Math.min(n - 1, pIdx + 1);
+      else if (k === 13) togglePick(picker._src, pIdx); else if (k === 10009 || k === 27 || k === 8) closePicker(); else return;
+      paintPick(); e.preventDefault(); return;
+    }
+    if (k === 87 || k === 403 || k === 404) { cycleWeather(); return; } // W, красная, зелёная
+    if (k === 10009) { e.preventDefault(); return; } // «Назад» на главном экране ничего не закрывает
+    if (zone === "tabs") {
+      if (k === 37) setTab(0); else if (k === 39) setTab(1);
+      else if ((k === 40 || k === 13) && tabIdx === 0) { zone = "apps"; setFocus(focus); }
+      paintTabs(); e.preventDefault(); return;
+    }
+    if (k === 37) setFocus(focus - 1); else if (k === 39) setFocus(focus + 1);
+    else if (k === 38) { zone = "tabs"; setFocus(focus); } else if (k === 13) launch(APPS[focus]); else return;
+    e.preventDefault();
+  });
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) { tick(); load(); } });
+
+  tick(); setTimeout(function () { tick(); setInterval(tick, 60000); }, 60000 - Date.now() % 60000 + 50);
+  setInterval(setSkyTarget, 60000);
+  buildShelf(); discover(); load(); setInterval(load, CONFIG.refreshMin * 60000);
+})();
+</script>
+</body>
+</html>
